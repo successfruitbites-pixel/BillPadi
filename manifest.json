@@ -1,6 +1,6 @@
 {
-  "name": "KudiBill - Professional Invoices for Nigerian Businesses",
-  "short_name": "KudiBill",
+  "name": "Naija Invoice App",
+  "short_name": "InvoiceNG",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -12,14 +12,12 @@
     {
       "src": "./icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "./icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }
