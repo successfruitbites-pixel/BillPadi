@@ -1,45 +1,44 @@
-const CACHE_NAME = 'invoiceng-v1';
+const CACHE_NAME = 'invoice-ng-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
+  '/manifest.json',
   'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
-  // Note: Supabase is cached conditionally or via network-first strategies in advanced SWs.
-  // For basic offline access to the UI, these static files are sufficient.
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+  'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
+// Install: Precache critical assets
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+  );
 });
 
+// Activate: Clean up old caches and claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) => Promise.all(
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    )).then(() => self.clients.claim())
   );
 });
 
+// Fetch: Network First, fallback to Offline Cache
 self.addEventListener('fetch', (event) => {
-  // Try Cache first, fallback to Network
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    }).catch(() => {
-      // Offline fallback can go here if needed
-    })
+    fetch(event.request)
+      .then((response) => {
+        // Clone and cache the successful network response
+        const respClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, respClone));
+        return response;
+      })
+      .catch(() => caches.match(event.request)) // Offline fallback
   );
 });
