@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <title>KudiBill - Professional Invoices for Nigerian Businesses</title>
+
+    <!-- Manifest for PWA Installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./icon-512.png" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "sans-serif"] },
+            colors: { naija: "#2563eb", corporate: "#2563eb" },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  </head>
+  <body
+    class="bg-gray-50 text-gray-900 font-sans antialiased pb-20 select-none"
+  >
+    <!-- Toast Container -->
+    <div
+      id="toast-container"
+      class="fixed top-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none px-4"
+    ></div>
+
+    <!-- Onboarding Section -->
+    <main
+      id="onboarding-section"
+      class="w-full max-w-md mx-auto px-4 py-8 hidden"
+    >
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-2xl font-bold mb-2 text-gray-800">
+          Business Onboarding
+        </h2>
+        <p class="text-gray-500 mb-6 text-sm">
+          Set up your profile to start creating invoices.
+        </p>
+        <form id="onboarding-form" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium mb-1">Business Name *</label
+            ><input
+              type="text"
+              name="businessName"
+              required
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija"
+              placeholder="e.g. Success Fruit Bites"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Business Logo</label
+            ><input
+              type="file"
+              name="logoFile"
+              accept="image/*"
+              class="w-full h-12 px-4 py-2 rounded-lg border border-gray-300 focus:border-naija bg-white"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Phone Number *</label
+            ><input
+              type="tel"
+              name="phone"
+              required
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija"
+              placeholder="08012345678"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">State *</label
+            ><select
+              id="state"
+              name="state"
+              required
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija bg-white"
+            >
+              <option value="Lagos">Lagos</option>
+              <option value="Abuja">Abuja</option>
+              <option value="Kano">Kano</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1"
+              >RC Number (Optional)</label
+            ><input
+              type="text"
+              name="rcNumber"
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija"
+              placeholder="RC 1234567"
+            />
+          </div>
+          <div class="flex items-center justify-between pt-2">
+            <div>
+              <label class="text-sm font-medium text-gray-900"
+                >Enable 7.5% VAT</label
+              >
+            </div>
+            <input
+              type="checkbox"
+              name="vatEnabled"
+              id="vatToggle"
+              class="w-6 h-6 rounded text-naija focus:ring-naija"
+            />
+          </div>
+          <button
+            type="submit"
+            id="onboarding-submit"
+            class="w-full h-12 text-white bg-naija rounded-lg font-bold"
+          >
+            Save Business
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <!-- Main App Container -->
+    <div id="main-app" class="hidden h-full flex flex-col">
+      <!-- Header -->
+      <header
+        class="bg-white shadow-sm sticky top-0 z-10 w-full py-4 px-4 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <img src="./icon-512.png" class="w-8 h-8 rounded-md" alt="Logo" />
+          KudiBill
+        </h1>
+        <button
+          type="button"
+          id="sync-btn"
+          class="text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1 active:bg-gray-200"
+        >
+          ☁️ Sync
+        </button>
+      </header>
+
+      <!-- Navigation Views -->
+      <div id="views" class="flex-1 w-full relative content-area">
+        <!-- DASHBOARD -->
+        <section
+          id="view-dashboard"
+          class="px-4 py-6 hidden max-w-5xl mx-auto w-full"
+        >
+          <header class="mb-5 flex justify-between items-end">
+            <div>
+              <h2 class="text-xl font-bold tracking-tight text-slate-800">
+                Business Overview
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Your recent financial performance
+              </p>
+            </div>
+          </header>
+
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            <div
+              class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between col-span-2 md:col-span-1"
+            >
+              <p
+                class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-1"
+              >
+                Total Invoiced
+              </p>
+              <p
+                id="dash-total"
+                class="font-black text-2xl text-slate-800 tracking-tight"
+              >
+                ₦0.00
+              </p>
+            </div>
+            <div
+              class="bg-blue-50 p-4 rounded-xl border border-blue-200 shadow-sm flex flex-col justify-between"
+            >
+              <p
+                class="text-[10px] text-blue-700 uppercase tracking-widest font-bold mb-1"
+              >
+                Pending Amount
+              </p>
+              <p
+                id="dash-pending"
+                class="font-black text-xl text-blue-800 tracking-tight"
+              >
+                ₦0.00
+              </p>
+            </div>
+            <div
+              class="bg-green-50 p-4 rounded-xl border border-green-200 shadow-sm flex flex-col justify-between"
+            >
+              <p
+                class="text-[10px] text-green-700 uppercase tracking-widest font-bold mb-1"
+              >
+                Received (Paid)
+              </p>
+              <p
+                id="dash-received"
+                class="font-black text-xl text-green-800 tracking-tight"
+              >
+                ₦0.00
+              </p>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div
+              class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col"
+            >
+              <h3
+                class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4"
+              >
+                Revenue Trends
+              </h3>
+              <div class="relative flex-1 min-h-[160px] w-full">
+                <canvas id="dashboardChart"></canvas>
+              </div>
+            </div>
+            <div
+              class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col"
+            >
+              <h3
+                class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4"
+              >
+                Invoice Status
+              </h3>
+              <div
+                class="relative flex-1 min-h-[160px] w-full flex justify-center items-center"
+              >
+                <canvas id="pieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Invoices Table -->
+          <div
+            class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8"
+          >
+            <div
+              class="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50"
+            >
+              <h3
+                class="text-xs font-bold text-slate-700 uppercase tracking-wider"
+              >
+                Recent Invoices
+              </h3>
+            </div>
+            <div class="overflow-x-auto w-full">
+              <table
+                class="w-full text-left border-collapse whitespace-nowrap min-w-[500px]"
+              >
+                <thead>
+                  <tr
+                    class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider font-bold border-b border-slate-200"
+                  >
+                    <th class="py-3 px-4">Client Name</th>
+                    <th class="py-3 px-4">Invoice #</th>
+                    <th class="py-3 px-4 text-right">Amount</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="recent-invoices"
+                  class="divide-y divide-slate-100 text-sm"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- CREATE INVOICE FORM -->
+        <section id="view-create" class="px-4 py-6 max-w-md mx-auto w-full">
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-4 relative z-20"
+          >
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+              <h2 class="text-lg font-bold">Customer Details</h2>
+              <button
+                type="button"
+                id="cancel-edit-btn"
+                class="hidden text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-wider"
+              >
+                Cancel Edit
+              </button>
+            </div>
+            <div class="space-y-3 relative">
+              <div class="relative">
+                <input
+                  type="text"
+                  id="inv-cust-name"
+                  autocomplete="off"
+                  class="w-full h-12 px-4 rounded-lg border border-slate-300 focus:border-naija"
+                  placeholder="Search or Enter Customer Name..."
+                />
+                <p
+                  id="err-cust-name"
+                  class="text-xs text-red-500 mt-1 hidden font-semibold"
+                >
+                  Customer name is required
+                </p>
+                <div
+                  id="cust-autocomplete-dropdown"
+                  class="hidden absolute top-[100%] left-0 w-full bg-white border border-gray-200 shadow-xl rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"
+                ></div>
+              </div>
+              <input
+                type="tel"
+                id="inv-cust-phone"
+                class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija"
+                placeholder="Customer Phone (e.g. 080...)"
+              />
+              <div class="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="inv-save-cust"
+                  checked
+                  class="w-5 h-5 rounded text-naija"
+                />
+                <label for="inv-save-cust" class="text-sm font-medium"
+                  >💾 Save this customer</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-4"
+          >
+            <h2 class="text-lg font-bold mb-4 border-b pb-2">Items</h2>
+            <div id="invoice-items" class="space-y-4 mb-2"></div>
+            <p
+              id="err-items"
+              class="text-xs text-red-500 mb-4 hidden font-semibold"
+            >
+              Please add at least one item.
+            </p>
+            <button
+              type="button"
+              id="add-item-btn"
+              class="w-full h-12 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 font-medium hover:border-naija hover:text-naija active:bg-slate-50 transition"
+            >
+              + Add New Item
+            </button>
+          </div>
+
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-6"
+          >
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-600 font-medium">Subtotal</span
+              ><span id="inv-subtotal" class="font-bold">₦0.00</span>
+            </div>
+            <div
+              class="flex justify-between items-center mb-2 text-sm text-gray-500"
+              id="vat-row"
+            >
+              <span class="font-medium">VAT (7.5%)</span
+              ><span id="inv-vat">₦0.00</span>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t mt-3">
+              <span class="text-lg font-bold">Total</span
+              ><span id="inv-total" class="text-xl font-black text-naija"
+                >₦0.00</span
+              >
+            </div>
+          </div>
+
+          <div class="flex gap-3 mb-8">
+            <button
+              type="button"
+              id="save-draft-btn"
+              class="flex-1 h-12 bg-slate-200 text-slate-800 rounded-lg font-bold active:bg-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              💾 Save Draft
+            </button>
+            <button
+              type="button"
+              id="generate-inv-btn"
+              class="flex-1 h-12 bg-naija text-white rounded-lg font-bold active:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              📄 Generate
+            </button>
+          </div>
+        </section>
+
+        <!-- CUSTOMERS -->
+        <section
+          id="view-customers"
+          class="px-4 py-6 hidden max-w-md mx-auto w-full"
+        >
+          <h2 class="text-xl font-bold mb-4">Customers</h2>
+          <input
+            type="text"
+            id="cust-search"
+            class="w-full h-12 px-4 rounded-lg border border-gray-300 mb-4 focus:border-naija"
+            placeholder="Search by name..."
+          />
+          <div id="customers-list" class="space-y-3 pb-8"></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section
+          id="view-settings"
+          class="px-4 py-6 hidden max-w-md mx-auto w-full"
+        >
+          <h2 class="text-xl font-bold mb-4">Settings</h2>
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-4"
+          >
+            <h3
+              class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3"
+            >
+              Invoice Template
+            </h3>
+            <select
+              id="template-selector"
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija bg-white mb-2"
+            >
+              <option value="minimal">Minimal (B&W)</option>
+              <option value="corporate">Corporate (Blue/Gray)</option>
+              <option value="creative">Creative (Vibrant)</option>
+              <option value="tech">Tech (Monospace)</option>
+              <option value="medical">Medical (Teal)</option>
+              <option value="freelance">Freelancer (Purple)</option>
+              <option value="retail">Retail (Red)</option>
+              <option value="service" selected>Service (Green)</option>
+              <option value="bold">Bold (Heavy Borders)</option>
+              <option value="elegant">Elegant (Gold/Serif)</option>
+              <option value="modern">Modern (Indigo)</option>
+              <option value="classic">Classic (Navy/Traditional)</option>
+            </select>
+            <p class="text-xs text-gray-500 italic mb-4">
+              Applies to all new invoices and receipts.
+            </p>
+          </div>
+
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-4"
+          >
+            <h3
+              class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3"
+            >
+              Business Assets
+            </h3>
+            <form id="settings-assets-form" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1 text-slate-700"
+                  >Logo</label
+                >
+                <div class="flex items-center gap-3">
+                  <img
+                    id="settings-logo-preview"
+                    src=""
+                    alt="Logo"
+                    class="hidden w-12 h-12 rounded border border-slate-200 bg-slate-50 object-contain p-1"
+                  />
+                  <input
+                    type="file"
+                    id="settings-logo-upload"
+                    name="logoFile"
+                    accept="image/*"
+                    class="flex-1 w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-naija bg-white hover:bg-slate-50 transition cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1 text-slate-700"
+                  >Signature</label
+                >
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-3">
+                    <img
+                      id="settings-signature-preview"
+                      src=""
+                      alt="Signature"
+                      class="hidden w-16 h-8 rounded border border-slate-200 bg-slate-50 object-contain p-1"
+                    />
+                    <input
+                      type="file"
+                      id="settings-signature-upload"
+                      name="signatureFile"
+                      accept="image/*"
+                      class="flex-1 w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-naija bg-white hover:bg-slate-50 transition cursor-pointer"
+                    />
+                  </div>
+                  <div class="flex items-center gap-3 my-1">
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                    <span
+                      class="text-[10px] uppercase font-bold text-slate-400 tracking-widest"
+                      >OR ENTER TEXT</span
+                    >
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                  </div>
+                  <input
+                    type="text"
+                    id="settings-signature-text"
+                    name="signatureText"
+                    placeholder="e.g. John Doe"
+                    class="w-full h-10 px-3 text-sm rounded-lg border border-gray-300 focus:border-naija bg-white"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                id="settings-assets-btn"
+                class="w-full h-10 text-white bg-naija rounded-lg font-bold text-sm hover:bg-blue-700 transition"
+              >
+                Save Assets
+              </button>
+            </form>
+          </div>
+
+          <div
+            class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-4 space-y-2"
+          >
+            <p class="text-sm font-medium text-gray-500">Business Name</p>
+            <p class="font-bold text-lg" id="set-bname">-</p>
+            <p class="text-sm font-medium text-gray-500 mt-4">Phone</p>
+            <p class="font-bold" id="set-bphone">-</p>
+            <p class="text-sm font-medium text-gray-500 mt-4">VAT Enabled</p>
+            <p class="font-bold" id="set-bvat">-</p>
+
+            <h3 class="font-bold mt-6 pt-4 border-t text-red-600">
+              Danger Zone
+            </h3>
+            <button
+              type="button"
+              id="logout-btn"
+              class="w-full h-12 mt-2 border border-red-500 text-red-500 rounded-lg font-bold bg-red-50 active:bg-red-100"
+            >
+              Reset Local Data
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Mobile Sticky Bottom Nav -->
+      <nav
+        id="bottom-nav"
+        class="fixed bottom-0 w-full left-0 bg-white border-t border-gray-200 z-40 safe-area-bottom shadow-[0_-4px_10px_rgba(0,0,0,0.05)]"
+      >
+        <div class="max-w-md mx-auto flex justify-around w-full py-2">
+          <button
+            type="button"
+            class="nav-btn flex flex-col items-center flex-1 py-1"
+            data-target="dashboard"
+          >
+            <span class="text-2xl mb-1 filter grayscale opacity-50">📊</span
+            ><span class="text-[10px] font-bold text-gray-500">Dashboard</span>
+          </button>
+          <button
+            type="button"
+            class="nav-btn flex flex-col items-center flex-1 py-1 text-naija active-nav"
+            data-target="create"
+          >
+            <span class="text-2xl mb-1">📝</span
+            ><span class="text-[10px] font-bold">Create</span>
+          </button>
+          <button
+            type="button"
+            class="nav-btn flex flex-col items-center flex-1 py-1"
+            data-target="customers"
+          >
+            <span class="text-2xl mb-1 filter grayscale opacity-50">👥</span
+            ><span class="text-[10px] font-bold text-gray-500">Customers</span>
+          </button>
+          <button
+            type="button"
+            class="nav-btn flex flex-col items-center flex-1 py-1"
+            data-target="settings"
+          >
+            <span class="text-2xl mb-1 filter grayscale opacity-50">⚙️</span
+            ><span class="text-[10px] font-bold text-gray-500">Settings</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+
+    <!-- 💬 Feedback / Contact Button -->
+    <button
+      type="button"
+      id="feedback-btn"
+      class="fixed bottom-24 right-4 bg-white/90 backdrop-blur rounded-full px-4 py-2 shadow-lg border border-gray-200 flex items-center gap-2 text-sm font-bold z-40 text-gray-700 active:bg-gray-100 transition safe-area-bottom"
+    >
+      💬 Feedback
+    </button>
+
+    <!-- Customer Edit Modal -->
+    <div
+      id="customer-modal"
+      class="fixed inset-0 bg-black/50 z-[100] hidden flex-col justify-center items-center px-4"
+    >
+      <div
+        class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="font-bold text-lg text-gray-900" id="customer-modal-title">
+            Edit Customer
+          </h3>
+          <button
+            type="button"
+            id="close-customer-modal"
+            class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full font-bold text-gray-600 active:bg-gray-300"
+          >
+            ✕
+          </button>
+        </div>
+        <form id="customer-form" class="p-6 space-y-4">
+          <input type="hidden" id="cust-edit-id" />
+          <div>
+            <label class="block text-sm font-medium mb-1">Name</label>
+            <input
+              type="text"
+              id="cust-edit-name"
+              required
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Phone</label>
+            <input
+              type="tel"
+              id="cust-edit-phone"
+              class="w-full h-12 px-4 rounded-lg border border-gray-300 focus:border-naija"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full h-12 bg-naija text-white rounded-xl font-bold mt-4 shadow-sm active:bg-blue-800 transition"
+          >
+            Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div
+      id="confirm-modal"
+      class="fixed inset-0 bg-black/50 z-[110] hidden flex-col justify-center items-center px-4"
+    >
+      <div
+        class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 text-center"
+      >
+        <div
+          class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex justify-center items-center mx-auto text-3xl mb-4"
+        >
+          ⚠️
+        </div>
+        <h3 class="font-bold text-lg text-gray-900 mb-2">Delete Customer?</h3>
+        <p class="text-sm text-gray-500 mb-6">
+          Are you sure you want to delete this customer? This action cannot be
+          undone.
+        </p>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            id="confirm-cancel-btn"
+            class="flex-1 h-12 bg-gray-100 text-gray-700 rounded-xl font-bold active:bg-gray-200 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            id="confirm-delete-btn"
+            class="flex-1 h-12 bg-red-600 text-white rounded-xl font-bold active:bg-red-700 transition shadow-sm"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🚀 First-Run Onboarding Modal -->
+    <div
+      id="onboarding-modal"
+      class="onboarding-overlay fixed inset-0 bg-black/50 z-[100] hidden flex-col justify-end"
+    >
+      <div
+        class="onboarding-card bg-white w-full max-w-md mx-auto rounded-t-3xl p-6 sm:mb-4 sm:rounded-3xl shadow-2xl relative overflow-hidden"
+      >
+        <div class="absolute top-0 right-0 p-4">
+          <button
+            type="button"
+            id="skip-onboarding"
+            class="text-sm font-bold text-gray-400 hover:text-gray-600"
+          >
+            Skip
+          </button>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="onboard-step text-center py-6" id="step-1">
+          <div class="text-6xl mb-4">🚀</div>
+          <h3 class="text-xl font-black mb-2 text-gray-900">
+            Welcome to InvoiceNG
+          </h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-6">
+            Your professional, offline-first invoicing tool.<br /><strong
+              >Create, download, and share in seconds.</strong
+            >
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="onboard-step text-center py-6 hidden" id="step-2">
+          <div class="text-6xl mb-4">📄</div>
+          <h3 class="text-xl font-black mb-2 text-gray-900">
+            Auto-Generate PDFs
+          </h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-6">
+            Fill in your items and tap Generate. A beautiful, perfectly-sized A4
+            PDF is instantly created.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="onboard-step text-center py-6 hidden" id="step-3">
+          <div class="text-6xl mb-4">📲</div>
+          <h3 class="text-xl font-black mb-2 text-gray-900">
+            1-Tap WhatsApp Share
+          </h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-6">
+            Skip the copy-pasting. Send a professional message and your PDF
+            document straight to your client's WhatsApp.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between mt-2">
+          <div class="flex gap-2" id="step-indicators">
+            <div class="step-dot active h-2 w-2 rounded-full bg-naija"></div>
+            <div class="step-dot h-2 w-2 rounded-full bg-gray-200"></div>
+            <div class="step-dot h-2 w-2 rounded-full bg-gray-200"></div>
+          </div>
+          <button
+            type="button"
+            id="next-onboarding"
+            class="bg-naija text-white px-6 py-3 rounded-xl font-bold active:bg-blue-700 transition"
+          >
+            Next ➔
+          </button>
+          <button
+            type="button"
+            id="finish-onboarding"
+            class="bg-naija text-white px-6 py-3 rounded-xl font-bold active:bg-blue-700 transition hidden"
+          >
+            ✅ Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF / Action Modal -->
+    <div
+      id="action-modal"
+      class="fixed inset-0 bg-black/60 z-50 hidden flex-col justify-end backdrop-blur-sm transition-opacity"
+    >
+      <div
+        class="bg-gray-50 w-full max-w-md mx-auto rounded-t-3xl max-h-[90vh] overflow-y-auto pb-8 shadow-2xl relative"
+      >
+        <div
+          class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-3xl z-10 w-full"
+        >
+          <h3 class="font-bold text-lg text-gray-900" id="modal-title">
+            Invoice Ready
+          </h3>
+          <button
+            type="button"
+            id="close-modal"
+            class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full font-bold text-gray-600 active:bg-gray-300"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="p-6">
+          <!-- Status indicators -->
+          <div class="flex gap-2 mb-4">
+            <div
+              id="modal-paid-badge"
+              class="hidden bg-green-100 text-green-800 text-sm font-bold uppercase py-2 px-4 rounded-lg inline-flex items-center gap-2"
+            >
+              ✅ PAID IN FULL
+            </div>
+            <div
+              id="modal-pending-badge"
+              class="hidden bg-blue-100 text-blue-800 text-sm font-bold uppercase py-2 px-4 rounded-lg inline-flex items-center gap-2"
+            >
+              ⏳ PENDING PAYMENT
+            </div>
+          </div>
+
+          <!-- Payment Details Section -->
+          <div
+            id="bank-details-card"
+            class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 relative"
+          >
+            <h4 class="font-bold text-sm text-blue-800 mb-2">
+              🏦 Bank Transfer Details
+            </h4>
+            <div class="space-y-2 text-sm text-blue-900">
+              <div
+                class="flex justify-between items-end border-b border-blue-100 pb-2"
+              >
+                <div>
+                  <span
+                    class="opacity-70 text-[10px] uppercase font-bold tracking-wider"
+                    >Amount Due</span
+                  >
+                  <strong
+                    id="modal-amount"
+                    class="text-xl block font-black text-naija mt-1"
+                    >₦0.00</strong
+                  >
+                </div>
+                <div class="text-right">
+                  <span
+                    class="opacity-70 text-[10px] uppercase font-bold tracking-wider"
+                    >Ref Number</span
+                  >
+                  <span id="modal-ref" class="block font-bold font-mono mt-1"
+                    >INV-123</span
+                  >
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <p
+                  class="text-[10px] uppercase font-bold text-blue-500 mb-2 tracking-wider"
+                >
+                  Your Bank Details (For WhatsApp)
+                </p>
+                <input
+                  type="text"
+                  id="bank-name"
+                  class="w-full text-sm font-bold bg-white border border-blue-200 rounded p-2 mb-2 text-blue-900 placeholder-blue-300"
+                  placeholder="Bank Name (e.g. GTB) "
+                />
+                <input
+                  type="number"
+                  id="acct-num"
+                  class="w-full text-sm font-bold bg-white border border-blue-200 rounded p-2 mb-2 text-blue-900 placeholder-blue-300"
+                  placeholder="Account Number"
+                />
+                <input
+                  type="text"
+                  id="acct-name"
+                  class="w-full text-sm font-medium bg-white border border-blue-200 rounded p-2 text-blue-900 placeholder-blue-300"
+                  placeholder="Account Name"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              id="copy-bank-details"
+              class="absolute top-4 right-4 bg-white/80 hover:bg-white text-blue-700 px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold transition active:bg-blue-100"
+            >
+              📋 Copy Text
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <button
+              type="button"
+              id="action-whatsapp"
+              class="w-full h-12 bg-[#25D366] text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              📲 Share on WhatsApp
+            </button>
+            <button
+              type="button"
+              id="action-pdf"
+              class="w-full h-12 bg-white border border-slate-300 text-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ⬇️ Download PDF
+            </button>
+            <button
+              type="button"
+              id="action-preview"
+              class="w-full h-12 bg-slate-100 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:bg-slate-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              👁️ Preview Document
+            </button>
+
+            <button
+              type="button"
+              id="action-edit"
+              class="w-full h-12 bg-white border border-yellow-500 text-yellow-700 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:bg-yellow-50 transition"
+            >
+              ✏️ Edit Invoice
+            </button>
+
+            <button
+              type="button"
+              id="action-pay"
+              class="w-full h-14 bg-naija text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 mt-6 relative overflow-hidden active:bg-blue-800 transition text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ✅ Mark as Paid & Get Receipt
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Preview Modal -->
+    <div
+      id="preview-modal"
+      class="fixed inset-0 bg-black/80 z-[60] hidden flex-col transition-opacity"
+    >
+      <div
+        class="flex flex-col sm:flex-row justify-between items-center p-4 bg-black text-white w-full gap-4"
+      >
+        <h3 class="font-bold text-lg" id="preview-title">Document Preview</h3>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="preview-zoom-out"
+            class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded font-medium text-sm transition"
+          >
+            -
+          </button>
+          <span
+            id="preview-zoom-level"
+            class="text-sm font-mono w-12 text-center"
+            >100%</span
+          >
+          <button
+            type="button"
+            id="preview-zoom-in"
+            class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded font-medium text-sm transition"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            id="preview-fit"
+            class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded font-medium text-sm transition ml-2"
+          >
+            Fit
+          </button>
+        </div>
+
+        <button
+          type="button"
+          id="close-preview-modal"
+          class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full font-bold active:bg-white/40"
+        >
+          ✕
+        </button>
+      </div>
+      <div
+        class="flex-1 overflow-auto flex justify-center pb-20 pt-4"
+        id="preview-scroll-container"
+      >
+        <div
+          id="preview-wrapper"
+          class="origin-top"
+          style="transform-origin: top center"
+        >
+          <!-- Cloned template will be injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden PDF Generation Template (Themeable) -->
+    <div id="pdf-container">
+      <div
+        id="pdf-template"
+        class="theme-service a4-container mx-auto relative"
+        style="position: relative; background-color: var(--color-bg)"
+      >
+        <!-- Paid Stamp (Watermark for Receipts) -->
+        <div
+          id="pdf-paid-stamp"
+          class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden mix-blend-overlay"
+        >
+          <div
+            class="border-[16px] border-green-500/30 text-green-500/30 font-black text-[12rem] py-10 px-20 rounded-[3rem] uppercase tracking-[0.2em] border-dashed -rotate-45 transform scale-125 select-none"
+          >
+            PAID
+          </div>
+        </div>
+
+        <div
+          class="flex justify-between items-start mb-12 theme-primary-border pb-8 relative z-10 border-b-2 avoid-page-break"
+        >
+          <div class="flex items-center gap-5">
+            <img
+              id="pdf-logo"
+              src="./icon-512.png"
+              alt="Business Logo"
+              class="hidden w-20 h-20 object-contain rounded-md"
+            />
+            <div>
+              <h1
+                id="pdf-bname"
+                class="text-4xl font-black theme-primary-text tracking-tight"
+              >
+                Business Name
+              </h1>
+              <p id="pdf-bphone" class="opacity-70 mt-2 font-medium theme-text">
+                08012345678
+              </p>
+              <p id="pdf-rc" class="opacity-50 text-sm mt-1 theme-text"></p>
+            </div>
+          </div>
+          <div class="text-right">
+            <h2
+              id="pdf-type"
+              class="text-5xl font-black opacity-30 uppercase tracking-widest theme-text"
+            >
+              INVOICE
+            </h2>
+            <div
+              class="mt-4 text-sm theme-accent-bg p-4 rounded-xl theme-divider inline-block text-left border"
+            >
+              <p>
+                <span class="opacity-70 font-medium">No:</span>
+                <strong id="pdf-inv-no" class="ml-2 font-mono">INV-000</strong>
+              </p>
+              <p class="mt-1">
+                <span class="opacity-70 font-medium">Date:</span>
+                <strong id="pdf-date" class="ml-2">Date</strong>
+              </p>
+              <p class="mt-1 receipt-only">
+                <span class="opacity-70 font-medium">Paid via:</span>
+                <strong id="pdf-method" class="ml-2">Bank Transfer</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="mb-10 theme-accent-bg p-6 rounded-xl theme-divider w-1/2 relative z-10 border avoid-page-break"
+        >
+          <h3
+            class="text-sm font-bold opacity-60 uppercase tracking-wider mb-2"
+          >
+            Billed To:
+          </h3>
+          <p id="pdf-cname" class="font-bold text-2xl mb-1">Customer Name</p>
+          <p id="pdf-cphone" class="opacity-80 font-medium font-mono">
+            08012345678
+          </p>
+        </div>
+
+        <!-- INVOICE TABLE -->
+        <div class="mb-10 relative z-10 invoice-only avoid-page-break">
+          <table class="w-full text-left border-collapse print-table">
+            <thead>
+              <tr class="theme-accent-bg text-sm uppercase tracking-wider">
+                <th class="py-4 px-6 rounded-l-xl font-bold">Description</th>
+                <th class="py-4 px-6 font-bold text-center">Qty</th>
+                <th class="py-4 px-6 font-bold text-right">Unit Price</th>
+                <th class="py-4 px-6 rounded-r-xl font-bold text-right">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="pdf-items"
+              class="divide-y theme-divider border-t border-transparent"
+            >
+              <!-- Items injected here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- RECEIPT TABLE (SIMPLIFIED) -->
+        <div class="mb-10 relative z-10 receipt-only avoid-page-break">
+          <table class="w-full text-left border-collapse print-table">
+            <thead>
+              <tr class="theme-accent-bg text-sm uppercase tracking-wider">
+                <th class="py-4 px-6 rounded-l-xl font-bold">
+                  Item Description
+                </th>
+                <th class="py-4 px-6 rounded-r-xl font-bold text-right">
+                  Amount Paid
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="pdf-receipt-items"
+              class="divide-y theme-divider border-t border-transparent"
+            >
+              <!-- Items injected here -->
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          class="flex justify-end mb-16 relative z-10 invoice-only avoid-page-break"
+        >
+          <div
+            class="w-1/2 theme-accent-bg p-6 rounded-xl theme-divider border"
+          >
+            <div class="flex justify-between py-2">
+              <span class="font-medium opacity-80 text-lg">Subtotal</span
+              ><span id="pdf-subtotal" class="font-bold text-lg">₦0.00</span>
+            </div>
+            <div id="pdf-vat-row" class="flex justify-between py-2">
+              <span class="font-medium opacity-80 text-lg">VAT (7.5%)</span
+              ><span id="pdf-vat" class="font-bold text-lg">₦0.00</span>
+            </div>
+            <div class="flex justify-between py-4 mt-2 theme-divider border-t">
+              <span class="text-2xl font-black">Total Due</span
+              ><span
+                id="pdf-total"
+                class="text-3xl font-black theme-primary-text"
+                >₦0.00</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-end mb-16 relative z-10 receipt-only avoid-page-break"
+        >
+          <div
+            class="w-1/2 theme-primary-bg p-6 rounded-xl overflow-hidden shadow-lg border border-transparent"
+          >
+            <div class="flex justify-between items-center">
+              <span class="font-medium opacity-90 text-lg text-white"
+                >Amount Paid</span
+              ><span
+                id="pdf-receipt-total"
+                class="font-bold text-2xl text-white"
+                >₦0.00</span
+              >
+            </div>
+            <div
+              class="flex justify-between items-center mt-2 pt-2 border-t border-white/20"
+            >
+              <span class="opacity-80 text-sm text-white">Balance Due</span
+              ><span class="font-bold text-sm text-white">₦0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Details (Invoice Only) -->
+        <div
+          class="mb-8 relative z-10 invoice-only theme-accent-bg p-5 rounded-xl border theme-divider avoid-page-break"
+          style="max-width: 60%"
+        >
+          <h4
+            class="font-bold text-sm opacity-60 uppercase tracking-wider mb-2"
+          >
+            Payment Details / Bank Transfer
+          </h4>
+          <p class="font-bold text-lg" id="pdf-bank-name">Bank Name</p>
+          <p class="font-mono text-xl tracking-wider mt-1" id="pdf-bank-acct">
+            0000000000
+          </p>
+          <p class="mt-1 opacity-80" id="pdf-bank-holder">Account Name</p>
+        </div>
+
+        <!-- Signature block -->
+        <div
+          id="pdf-signature-section"
+          class="flex justify-end mb-8 relative z-10 avoid-page-break hidden"
+        >
+          <div class="w-48 flex flex-col items-center text-center">
+            <img
+              id="pdf-signature-img"
+              src=""
+              class="h-16 w-full object-contain mix-blend-multiply hidden"
+              alt="Signature"
+            />
+            <p
+              id="pdf-signature-text"
+              class="italic font-serif text-2xl theme-primary-text hidden mb-1"
+            ></p>
+            <div class="h-px bg-slate-400 w-full mt-2 mb-2"></div>
+            <p
+              class="text-[10px] opacity-70 uppercase font-bold tracking-widest theme-text"
+            >
+              Authorized Signature
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="absolute bottom-10 left-12 right-12 theme-divider border-t-2 pt-8 text-center opacity-60 relative z-10 avoid-page-break"
+        >
+          <p class="font-bold mb-1 receipt-only text-lg">
+            Thank you for your business!
+          </p>
+          <p class="font-bold mb-1 invoice-only text-lg">
+            Please make payment by the due date.
+          </p>
+          <p class="text-sm">Generated securely via Naija Invoice.</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+
+    <!-- 
+  ======================================================
+  📢 LAUNCH MARKETING COPY (SUNDAY LAUNCH)
+  ======================================================
+  WHATSAPP BROADCAST:
+  🚀 Hey business owners! Tired of manual receipts?
+  Say hello to InvoiceNG! 🇳🇬
+  ✅ 12 Professional Templates
+  ✅ Beautiful A4 PDFs generated offline
+  ✅ 1-Tap Share to WhatsApp 
+  ✅ Tracks Pending vs Paid
+  Try it free here: [YOUR_LIVE_URL]
+
+  SOCIAL MEDIA CAPTION:
+  Taking your small business to the next level just got easier. 📈
+  Create stunning, professional invoices and receipts from your phone in 10 seconds.
+  Link in bio to try InvoiceNG for free! 💸 #SmallBusinessNG #NaijaBiz #Enterpreneur
+  ======================================================
+  --></body>
+</html>
