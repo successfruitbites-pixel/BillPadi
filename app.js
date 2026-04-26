@@ -482,9 +482,9 @@ const initMainApp = () => {
   // Feedback Btn Logic
   el("feedback-btn").addEventListener("click", () => {
     trackAnalytics("clicked_feedback");
-    const waNum = "2348000000000"; // Replace with your support number
+    const waNum = "2348060541643"; // Replace with your support number
     const msg = encodeURIComponent(
-      `Feedback for InvoiceNG (${state.business?.name || "New User"}):\n`,
+      `Feedback for KudiBill (${state.business?.name || "New User"}):\n`,
     );
     window.open(`https://wa.me/${waNum}?text=${msg}`, "_blank");
   });
