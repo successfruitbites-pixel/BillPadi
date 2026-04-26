@@ -1,0 +1,160 @@
+/*
+  ==========================================
+  NAIJA INVOICE & RECEIPT - STYLES
+  ==========================================
+*/
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="number"],
+select,
+button,
+label {
+  font-size: 16px !important; 
+  min-height: 48px; 
+}
+
+.content-area::-webkit-scrollbar { display: none; }
+.content-area { 
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+  overflow-y: auto; 
+  height: 100%; 
+  padding-bottom: 90px; 
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 15px);
+}
+
+.nav-btn .grayscale { transition: all 0.2s ease; }
+.nav-btn.active-nav .grayscale { filter: none; opacity: 1; }
+.nav-btn.active-nav span:last-child { color: #008751; }
+
+.toast-enter { animation: toastIn 0.3s ease forwards; }
+.toast-exit { animation: toastOut 0.3s ease forwards; }
+
+@keyframes toastIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-20px); opacity: 0; } }
+
+/* 🚀 Onboarding & Feedback Styles */
+.onboarding-overlay {
+  animation: fadeIn 0.3s ease forwards;
+  backdrop-filter: blur(4px);
+}
+.onboarding-card {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.step-dot { transition: all 0.3s ease; }
+.step-dot.active { width: 1.5rem; background-color: var(--color-primary, #008751); }
+
+/* CRITICAL FIX 1: Blank PDF Bug Fix */
+#pdf-container {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Template Engine CSS Variables */
+#pdf-template {
+  font-family: var(--font-primary, sans-serif);
+  background-color: var(--color-bg, #ffffff);
+  color: var(--color-text, #111827);
+  border-width: var(--border-page, 0px);
+  border-color: var(--color-primary, #008751);
+  border-style: solid;
+}
+
+#pdf-template .theme-primary-text { color: var(--color-primary, #008751); }
+#pdf-template .theme-primary-bg { background-color: var(--color-primary, #008751); color: var(--color-primary-text, #ffffff); }
+#pdf-template .theme-primary-border { border-color: var(--color-primary, #008751); border-top-width: var(--border-header, 2px); }
+#pdf-template .theme-accent-bg { background-color: var(--color-accent, #f3f4f6); }
+#pdf-template .theme-divider { border-color: var(--color-divider, #e5e7eb); }
+
+/* The 12 Themes */
+.theme-minimal { --color-primary: #111827; --color-accent: #f9fafb; --color-bg: #ffffff; --color-text: #111827; --color-divider: #e5e7eb; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 1px; }
+.theme-corporate { --color-primary: #1e3a8a; --color-accent: #eff6ff; --color-bg: #ffffff; --color-text: #1e293b; --color-divider: #e2e8f0; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 4px; }
+.theme-creative { --color-primary: #ec4899; --color-accent: #fdf2f8; --color-bg: #fffbfb; --color-text: #374151; --color-divider: #fce7f3; --color-primary-text: #ffffff; --font-primary: ui-rounded, sans-serif; --border-page: 0px; --border-header: 0px; }
+.theme-tech { --color-primary: #3b82f6; --color-accent: #1e293b; --color-bg: #0f172a; --color-text: #f8fafc; --color-divider: #334155; --color-primary-text: #ffffff; --font-primary: ui-monospace, SFMono-Regular, monospace; --border-page: 0px; --border-header: 1px; }
+.theme-medical { --color-primary: #0d9488; --color-accent: #f0fdfa; --color-bg: #ffffff; --color-text: #0f766e; --color-divider: #ccfbf1; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 2px; }
+.theme-freelance { --color-primary: #8b5cf6; --color-accent: #f5f3ff; --color-bg: #ffffff; --color-text: #4c1d95; --color-divider: #ede9fe; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 0px; }
+.theme-retail { --color-primary: #ef4444; --color-accent: #fef2f2; --color-bg: #ffffff; --color-text: #7f1d1d; --color-divider: #fee2e2; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 3px; }
+.theme-service { --color-primary: #d97706; --color-accent: #fffbeb; --color-bg: #ffffff; --color-text: #78350f; --color-divider: #fef3c7; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 2px; }
+.theme-bold { --color-primary: #000000; --color-accent: #fef08a; --color-bg: #ffffff; --color-text: #000000; --color-divider: #000000; --color-primary-text: #fef08a; --font-primary: "Arial Black", impact, sans-serif; --border-page: 8px; --border-header: 4px; }
+.theme-elegant { --color-primary: #9d174d; --color-accent: #fdf2f8; --color-bg: #fdfbf7; --color-text: #4c0519; --color-divider: #fbcfe8; --color-primary-text: #ffffff; --font-primary: ui-serif, Georgia, serif; --border-page: 0px; --border-header: 1px; }
+.theme-modern { --color-primary: #4f46e5; --color-accent: #eef2ff; --color-bg: #ffffff; --color-text: #312e81; --color-divider: #e0e7ff; --color-primary-text: #ffffff; --font-primary: ui-sans-serif, system-ui, sans-serif; --border-page: 0px; --border-header: 2px; }
+.theme-classic { --color-primary: #15803d; --color-accent: #f0fdf4; --color-bg: #ffffff; --color-text: #14532d; --color-divider: #dcfce7; --color-primary-text: #ffffff; --font-primary: ui-serif, Georgia, serif; --border-page: 0px; --border-header: 2px; }
+
+/* Receipt Mode specific overrides */
+#pdf-template.is-receipt .invoice-only { display: none !important; }
+#pdf-template:not(.is-receipt) .receipt-only { display: none !important; }
+
+/* Template specific utilities */
+.hide-in-tech { display: block; }
+.theme-tech .hide-in-tech { display: none; }
+
+/* 📐 PDF A4 Print Optimizations */
+.a4-container {
+  width: 210mm;
+  min-height: 297mm;
+  max-height: 297mm;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e5e7eb; /* Subtle boundary for preview */
+  padding: 12mm; /* Reduced from default Tailwind padding for print */
+  line-height: 1.25;
+}
+
+.a4-container * {
+  box-sizing: border-box;
+}
+
+.avoid-page-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.print-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.print-table th, .print-table td {
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+/* Base print sizing */
+.a4-container {
+  font-size: 11pt;
+}
+
+.a4-container .text-sm { font-size: 10pt; }
+.a4-container .text-xs { font-size: 9pt; }
+.a4-container h1.text-4xl, .a4-container h2.text-5xl { font-size: 24pt; }
+.a4-container .text-3xl { font-size: 18pt; }
+.a4-container .text-2xl { font-size: 14pt; }
+.a4-container .text-xl { font-size: 12pt; }
+.a4-container .text-lg { font-size: 11pt; }
+
+.pdf-logo {
+  max-width: 25mm;
+  max-height: 25mm;
+  object-fit: contain;
+}
+
+@media print {
+  body { margin: 0; }
+  .no-print { display: none !important; }
+}
