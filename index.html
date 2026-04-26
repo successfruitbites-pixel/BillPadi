@@ -6,14 +6,18 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
     />
-    <title>Naija Invoice App</title>
+    <title>KudiBill - Professional Invoices for Nigerian Businesses</title>
 
     <!-- Manifest for PWA Installability -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./icon-512.png" />
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -140,7 +144,8 @@
         class="bg-white shadow-sm sticky top-0 z-10 w-full py-4 px-4 flex justify-between items-center"
       >
         <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <span class="text-naija text-2xl">₦</span> Naija Invoice
+          <img src="./icon-512.png" class="w-8 h-8 rounded-md" alt="Logo" />
+          KudiBill
         </h1>
         <button
           type="button"
@@ -1004,7 +1009,7 @@
           <div class="flex items-center gap-5">
             <img
               id="pdf-logo"
-              src=""
+              src="./icon-512.png"
               alt="Business Logo"
               class="hidden w-20 h-20 object-contain rounded-md"
             />
